@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl"
+      crossorigin="anonymous"
+    />
+    <!-- <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static',filename='style.css') }}"
+    /> -->
+    <title>Flask_Chat_App</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col sm-5">
+          <div class="message_holder alert alert-success"></div>
+        </div>
+        <div class="col-sm-3"></div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="datas col-sm-7">
+          <p id="left" class="data alert alert-primary"></p>
+          <p id="right" class="data alert alert-primary"></p>
+          <p id="pull" class="data alert alert-primary"></p>
+          <p id="push" class="data alert alert-primary"></p>
+          <p id="neutral" class="data alert alert-primary"></p>
+        </div>
+        <div class="graph col-sm-1">
+          <div class="Fullengine">
+            <div class="engine engine_left" style="height: 1%"></div>
+          </div>
+        </div>
+        <div class="graph col-sm-1">
+          <div class="Fullengine">
+            <div class="engine engine_right" style="height: 1%"></div>
+          </div>
+        </div>
+        <div class="graph col-sm-1">
+          <div class="Fullengine">
+            <div class="engine engine_pull" style="height: 1%"></div>
+          </div>
+        </div>
+        <div class="graph col-sm-1">
+          <div class="Fullengine">
+            <div class="engine engine_push" style="height: 1%"></div>
+          </div>
+        </div>
+        <div class="graph col-sm-1">
+          <div class="Fullengine">
+            <div class="engine engine_neutral" style="height: 1%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <button
+      type="button"
+      onclick="Getdata()"
+      class="btn btn-outline-success btn-lg btn-block get_data"
+    >
+      GET DATA FROM EMOTIVE
+    </button>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.2/socket.io.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript">
+      //==================================================================================
+      function Getdata() {
+        socket.emit("updatedata", { data: "giver me data" });
+      }
+      //==============================================================================
+      var socket = io.connect(
+        "http://" + document.domain + ":" + location.port
+      );
+      console.log("http://" + document.domain + ":" + location.port);
+      //=============================================================================
+      socket.on("connect", function () {
+        socket.emit("onconnect", {
+          data: "Connected to socketIO, Connected successfully to emotive BCI",
+        });
+        socket.on("onconnect", function (msg) {
+          document.getElementsByClassName("message_holder")[0].innerHTML =
+            msg.data;
+        });
+        //============================================================================
+        socket.on("updatedata", function (msg) {
+          let components = document.getElementsByClassName("data");
+          let graph = document.getElementsByClassName("engine");
+          for (let i = 0; i < components.length; i++) {
+            if (msg.str == components[i].id) {
+              //==========================CHECK LED ON===============================
+              if (msg.num >= 0.85) {
+                components[i].className = "data alert alert-danger";
+                graph[i].style.background = "rgb(116, 3, 3)";
+              } else {
+                components[i].className = "data alert alert-primary";
+                graph[i].style.background = "rgb(1, 87, 90)";
+              }
+              //======================= SHOW DATA================================
+              components[i].innerHTML = components[i].id + ": " + msg.num;
+              graph[i].style.height = (msg.num / 1) * 100 + "%";
+              //====================== REMOVE DATA================================
+            } else {
+              components[i].innerHTML = components[i].id + ": " + 0;
+              graph[i].style.height = "1%";
+              components[i].className = "data alert alert-primary";
+              graph[i].style.background = "rgb(1, 87, 90)";
+            }
+          }
+        });
+        //===========================================================================
+      });
+    </script>
+  </body>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+    * {
+      transition: 0.5s;
+    }
+    .data {
+      transition: 0.6s;
+    }
+    .message_holder {
+      position: relative;
+      text-align: center;
+    }
+    .Fullengine {
+      position: relative;
+      width: 50px;
+      height: 100%;
+      transform: rotate(180deg);
+      background-color: white;
+      border: 3px solid black;
+    }
+    .engine {
+      position: absolute;
+      width: 100%;
+      height: 20%;
+      background-color: rgb(1, 87, 90);
+    }
+    .get_data {
+      position: relative;
+      left: 1%;
+      width: 98%;
+    }
+  </style>
+</html>

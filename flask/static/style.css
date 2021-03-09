@@ -1,0 +1,15 @@
+html,
+body {
+  height: 100%;
+  background-color: black;
+}
+* {
+  transition: 0.5s;
+}
+.data {
+  transition: 0.6s;
+}
+.message_holder {
+  position: relative;
+  text-align: center;
+}
